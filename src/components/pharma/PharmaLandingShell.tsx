@@ -1,9 +1,8 @@
 "use client";
 
-import { CheckCircle2, ExternalLink, CalendarCheck, BookOpen } from "lucide-react";
+import { CheckCircle2, CalendarCheck, BookOpen } from "lucide-react";
 import { useReveal } from "@/lib/useReveal";
 import PharmaLeadForm from "./PharmaLeadForm";
-import { ROUTES, CTA_LABELS } from "@/lib/routes";
 
 /**
  * Shared shell for the two conversion pages (/contact#demo and the guide).
@@ -28,22 +27,42 @@ export default function PharmaLandingShell({
   points,
   pointsLabel,
   variant,
-  showScheduleMLink = false,
+  downloadHref,
+  children,
 }: {
   eyebrow: string;
   title: string;
   accent: string;
   lede: string;
-  points: string[];
-  pointsLabel: string;
+  /**
+   * Optional. The guide page omits them: its "What will you see inside?"
+   * section already lists the same material, and repeating it in the hero was
+   * the same six lines twice on one page.
+   */
+  points?: string[];
+  pointsLabel?: string;
   variant: "demo" | "guide";
-  showScheduleMLink?: boolean;
+  /**
+   * The gated asset, passed straight through to the form. Omitted when the file
+   * is not present in the build, which is how the form knows not to promise a
+   * download it cannot deliver.
+   */
+  downloadHref?: string;
+  /**
+   * Long-form sections rendered below the hero. They sit outside the 1320px
+   * container so a section can go full bleed; each brings its own padding.
+   */
+  children?: React.ReactNode;
 }) {
   const ref = useReveal<HTMLDivElement>({ y: 24, stagger: 0.07, duration: 0.8 });
   const EyebrowIcon = EYEBROW_ICON[variant];
 
   return (
-    <main className="relative isolate overflow-hidden bg-white pb-20 pt-[104px] lg:pb-28">
+    <main
+      className={`relative isolate overflow-hidden bg-white pt-[104px] ${
+        children ? "" : "pb-20 lg:pb-28"
+      }`}
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
@@ -75,6 +94,8 @@ export default function PharmaLandingShell({
               {lede}
             </p>
 
+            {points && points.length > 0 && (
+              <>
             <p
               className="eyebrow mt-9"
               style={{ letterSpacing: "0.18em" }}
@@ -93,25 +114,23 @@ export default function PharmaLandingShell({
                 </li>
               ))}
             </ul>
-
-            {showScheduleMLink && (
-              <a
-                href={ROUTES.scheduleM}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="mt-8 inline-flex items-center gap-1.5 text-[14px] font-semibold text-navy underline decoration-navy/25 underline-offset-4 transition-colors hover:text-orange hover:decoration-orange/50"
-              >
-                {CTA_LABELS.scheduleM}
-                <ExternalLink size={14} strokeWidth={2.3} />
-              </a>
+              </>
             )}
           </div>
 
-          <div data-reveal className="lg:sticky lg:top-[96px]">
-            <PharmaLeadForm variant={variant} />
+          {/* `scroll-mt` clears the fixed header when an in-page download CTA
+              jumps here. */}
+          <div
+            id="guide-form"
+            data-reveal
+            className="scroll-mt-[96px] lg:sticky lg:top-[96px]"
+          >
+            <PharmaLeadForm variant={variant} downloadHref={downloadHref} />
           </div>
         </div>
       </div>
+
+      {children}
     </main>
   );
 }

@@ -317,7 +317,7 @@ export default function PharmaChallenges() {
           reading as a separate beat after the stack. */}
       <div className="mt-10 flex justify-center lg:mt-12">
         <PrimaryButton
-          href={ROUTES.demo}
+          href={ROUTES.guide}
           label={CTA_LABELS.seeSolution}
           size="lg"
           icon={<ArrowRight size={18} strokeWidth={2.4} />}

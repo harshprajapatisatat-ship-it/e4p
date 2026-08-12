@@ -1,40 +1,53 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PharmaLandingShell from "@/components/pharma/PharmaLandingShell";
+import PharmaGuideDetail from "@/components/pharma/PharmaGuideDetail";
+import { GUIDE_PDF } from "@/lib/routes";
 
 /**
- * Secondary conversion — "Get the Free Guide" / "Get the Compliance Guide".
- * Both labels point here.
+ * The guide page. Three CTAs land here: "Get the Free Guide", "Get the
+ * Compliance Guide" and "View Schedule M Guidelines".
+ *
+ * The hero carries the pitch and the lead form; `PharmaGuideDetail` carries the
+ * long-form copy below it.
  */
 export const metadata: Metadata = {
-  title: "Free Pharma Compliance & Audit Readiness Guide | Satat Technologies",
+  title:
+    "ERPNext for Pharma Manufacturing — Free Guide | Satat Technologies",
   description:
-    "A practical guide to building a systematic pharma process: batch traceability, documentation, quality checkpoints, equipment validation, change control and audit readiness.",
+    "See what a controlled pharmaceutical manufacturing operation looks like on ERPNext: batch and material management, traceability, production planning, manufacturing, cost and margins, and quality checks in one flow.",
   alternates: { canonical: "/resources/pharma-compliance-guide" },
+  openGraph: {
+    title: "ERPNext for Pharma Manufacturing — Free Guide",
+    description:
+      "A walkthrough of a pharmaceutical manufacturing operation running on ERPNext — from materials entering the plant to a finished batch reaching the customer.",
+    type: "article",
+  },
 };
 
-const POINTS = [
-  "What a batch has to be able to prove, and the records that prove it",
-  "Where documentation usually breaks down, and why it is a process problem",
-  "Quality checkpoints mapped to each stage from incoming material to release",
-  "An audit readiness checklist you can walk your own unit against",
-];
-
 export default function ComplianceGuidePage() {
+  // Checked here, on the server, at build time rather than assumed: the PDF is
+  // not in the repo yet, and a download button that 404s is worse than one that
+  // is honest about not being ready. Drop the file in and the form starts
+  // handing it over with no code change.
+  const guideReady = existsSync(path.join(process.cwd(), "public", GUIDE_PDF));
+
   return (
     <>
       <Header />
       <PharmaLandingShell
         eyebrow="Free Guide"
-        title="Build a process that"
-        accent="documents itself"
-        lede="A practical walkthrough of what a systematic pharma process actually looks like — the records, the checkpoints, the approvals and the trail — written for the people who have to produce it, not for auditors."
-        pointsLabel="What's inside"
-        points={POINTS}
+        title="See what a controlled"
+        accent="manufacturing operation can look like"
+        lede="Pharma manufacturing is not just about making products. It is about knowing which batch was made, what went into it, where it went, what it cost, whether it passed quality checks, and whether every step can be traced back when it matters. This guide takes you inside a pharmaceutical manufacturing operation running on ERPNext and shows how these pieces can work together in one system."
         variant="guide"
-        showScheduleMLink
-      />
+        downloadHref={guideReady ? GUIDE_PDF : undefined}
+      >
+        <PharmaGuideDetail />
+      </PharmaLandingShell>
       <Footer />
     </>
   );

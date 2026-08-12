@@ -25,6 +25,7 @@ import {
   FlaskConical,
 } from "lucide-react";
 import { gsap } from "@/lib/gsap";
+import { ROUTES, CTA_LABELS } from "@/lib/routes";
 import Logo from "./Logo";
 
 /**
@@ -151,13 +152,14 @@ const MENUS: Record<string, MenuData> = {
 /**
  * Labels that open a mega-menu panel, in nav order.
  *
- * The Manufacturing site currently ships this array empty (menus authored but
- * switched off in favour of a stripped nav). Here the two content-rich menus are
- * switched on, because a pharma buyer arrives looking for specific compliance
- * capabilities. To strip the nav back to plain links, empty this array — the
- * MENUS data and the panel below stay intact either way.
+ * Empty: the nav is stripped back to plain links, matching the Manufacturing
+ * site, which ships it empty too. Solutions / Industries / Resources are
+ * switched off here rather than deleted — the `MENUS` data below and the whole
+ * mega-menu panel are left intact and dormant, so putting any of them back is a
+ * matter of naming it in this array again. Both the desktop nav and the mobile
+ * accordion map over this, so an empty array simply renders neither.
  */
-const NAV_WITH_MENU: string[] = ["Solutions", "Industries", "Resources"];
+const NAV_WITH_MENU: string[] = [];
 
 /**
  * Plain nav links — no mega-menu panel, just destinations.
@@ -170,8 +172,13 @@ const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Contact", href: "/contact" },
 ];
 
-/** Primary conversion, in the bar and at the foot of the mobile menu. */
-const CTA = { label: "Book a Free Demo", href: "/contact#demo" };
+/**
+ * Primary conversion, in the bar and at the foot of the mobile menu. Read from
+ * `routes.ts` rather than written out here — this was the one "Book a Free
+ * Demo" on the site with a hardcoded destination, so it silently kept pointing
+ * at the old one when the CTA moved.
+ */
+const CTA = { label: CTA_LABELS.joinWebinar, href: ROUTES.demo };
 
 export default function Header() {
   const pathname = usePathname();

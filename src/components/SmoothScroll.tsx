@@ -38,6 +38,13 @@ export default function SmoothScroll() {
       // Touch scrolling is already smooth natively, and hijacking it costs
       // responsiveness on the pinned sections.
       syncTouch: false,
+      // Same-page `#hash` links. Without this Lenis keeps animating toward its
+      // own target and simply undoes the browser's native jump, so an anchor
+      // click appears to do nothing. The offset clears the fixed header —
+      // Lenis does not read `scroll-margin-top`, so the elements keep their
+      // `scroll-mt-*` classes for the reduced-motion path where Lenis is off
+      // and the browser does the scrolling itself.
+      anchors: { offset: -96 },
     });
     lenisRef.current = lenis;
 

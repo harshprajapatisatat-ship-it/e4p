@@ -140,8 +140,8 @@ export default function PharmaHero() {
             className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-center"
           >
             <PrimaryButton
-              href={ROUTES.demo}
-              label={CTA_LABELS.demo}
+              href={ROUTES.contact}
+              label={CTA_LABELS.getInTouch}
               size="lg"
               icon={<ArrowRight size={18} strokeWidth={2.4} />}
             />
