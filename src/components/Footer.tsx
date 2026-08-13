@@ -11,9 +11,8 @@ import { ROUTES, CTA_LABELS } from "@/lib/routes";
  *
  * Same design system as the Manufacturing footer: `bg-orange/2` over a top
  * border, a 1180px container, a brand column plus link columns on a 5-column
- * grid, and a divided bottom bar. Columns are pharma-facing, and the primary
- * conversion sits in the brand column so it is reachable from the very bottom
- * of the page.
+ * grid, and a divided bottom bar. Columns are pharma-facing; the demo route
+ * stays reachable from the Company column rather than as a footer button.
  */
 
 type FooterLink = { label: string; href: string; external?: boolean };
@@ -65,7 +64,7 @@ const COLS: { title: string; links: FooterLink[] }[] = [
 /**
  * Social links are intentionally absent: the Manufacturing footer carries none,
  * and the real handles were not supplied. To add them, drop entries in here —
- * the markup slot is below the demo CTA. Brand glyphs are NOT available in
+ * the markup slot is at the end of the brand column. Brand glyphs are NOT available in
  * lucide-react v1 (brand icons were removed), so use inline SVG marks.
  *
  *   const SOCIAL = [{ label: "LinkedIn", href: "…", mark: <svg …/> }];
@@ -105,13 +104,6 @@ export default function Footer() {
               Gujarat &ndash; 380058 India
             </p>
 
-            <Link
-              href={ROUTES.demo}
-              className="mt-5 inline-flex items-center justify-center rounded-[10px] bg-orange px-5 py-3 text-[14px] font-semibold text-white transition-colors hover:bg-[#d4760a]"
-            >
-              {CTA_LABELS.demo}
-            </Link>
-
             {/* ↑ Social link row goes here when handles are supplied — see the
                 SOCIAL note above this component. */}
           </div>
@@ -150,24 +142,10 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* ── Compliance note ───────────────────────────────
-            States plainly what ERPNext does and does not do, so nothing above it
-            can be read as a regulatory claim. */}
-        <p
-          data-reveal
-          className="mt-14 max-w-[86ch] border-t border-line pt-8 text-[12.5px] leading-relaxed text-muted"
-        >
-          ERPNext supports systematic processes, documentation, traceability and audit
-          readiness. Satat Technologies is an ERPNext implementation partner; nothing on this
-          site constitutes a regulatory certification, approval, or a guarantee of compliance
-          with Schedule M or any other regulation. Schedule M content is summarised for
-          context &mdash; always refer to the official CDSCO publication.
-        </p>
-
         {/* ── Bottom bar ────────────────────────────────── */}
         <div
           data-reveal
-          className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-line pt-8 text-[13px] text-muted sm:flex-row"
+          className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-line pt-8 text-[13px] text-muted sm:flex-row"
         >
           <span>© {new Date().getFullYear()} Satat Technologies. All rights reserved.</span>
           <span className="flex gap-6">
