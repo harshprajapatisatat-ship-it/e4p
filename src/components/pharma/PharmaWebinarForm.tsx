@@ -154,7 +154,7 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
         Reserve your seat
       </p>
       <p className="mt-2 text-[19px] font-extrabold tracking-tight text-ink">
-        Register free — takes 30 seconds
+        Register in 30 seconds
       </p>
       <hr className="my-5 border-0 border-t" style={{ borderColor: "var(--color-line)" }} />
 
@@ -227,7 +227,7 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
         {error && <FormError message={error} />}
 
         <SubmitButton
-          label="Reserve My Free Seat"
+          label="Reserve My Seat"
           sendingLabel="Reserving…"
           sending={sending}
           blockedReason={blockedReason}
@@ -235,8 +235,7 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
 
         <p className="flex items-start gap-2 text-[12px] leading-relaxed text-muted">
           <Lock size={12} strokeWidth={2.2} aria-hidden className="mt-0.5 shrink-0 text-teal" />
-          100% free. No card required. Your details stay with Satat Technologies — never sold or
-          shared.
+          Your details stay with Satat Technologies — never sold or shared.
         </p>
       </div>
     </form>
