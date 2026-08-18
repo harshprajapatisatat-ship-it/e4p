@@ -23,8 +23,8 @@ import { COMPANY_SIZES, FOCUS_AREAS } from "@/lib/leadForm";
  *
  * Submissions go to /api/forms, which forwards them server-side to the
  * whitelisted `satat_fca.api.contact.submit_form` method in ERPNext. The
- * browser never sees the ERPNext URL, and there is no API key anywhere — see
- * docs/frappe-forms-integration.md.
+ * browser never sees the ERPNext URL, and there is no API key anywhere — the
+ * only configuration is `ERP_URL`, read server-side in src/lib/erpnext.ts.
  *
  * The demo and contact variants write a `Contact Enquiry` record; the guide
  * variant writes a `Guide Download`. Which page it came from is carried on the
