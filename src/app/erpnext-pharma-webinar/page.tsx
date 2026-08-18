@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock, Hourglass, BadgeCheck, Video } from "lucide-react";
+import { Video } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import PharmaWebinarForm from "@/components/pharma/PharmaWebinarForm";
-import { getWebinarSessions, type WebinarSession } from "@/lib/webinarSessions";
+import { getWebinarSessions } from "@/lib/webinarSessions";
 import { ROUTES } from "@/lib/routes";
 
 /**
@@ -34,20 +34,6 @@ export const metadata: Metadata = {
  * no deploy. The same list feeds the date picker below and the form's dropdown,
  * so the two cannot drift apart.
  */
-
-/** Shown wherever a time is expected but nothing is scheduled. */
-const TBA_LABEL = "To be announced";
-
-/**
- * `"4:00 PM IST"` when every slot runs at the same hour, otherwise
- * `"Multiple times"` — the strip below the dates can only show one value.
- */
-function sessionTimeLabel(sessions: readonly WebinarSession[]): string {
-  if (sessions.length === 0) return TBA_LABEL;
-  return sessions.every((slot) => slot.time === sessions[0].time)
-    ? `${sessions[0].time} IST`
-    : "Multiple times";
-}
 
 const WHAT_YOU_GET = [
   "Live ERPNext demo on real pharma manufacturing data",
@@ -156,33 +142,9 @@ export default async function PharmaWebinarPage() {
                         );
                       })}
                     </ul>
-
                   </>
                 )}
 
-                <hr
-                  className="my-5 border-0 border-t"
-                  style={{ borderColor: "var(--color-line)" }}
-                />
-
-                <ul className="flex list-none flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-muted">
-                  <li className="inline-flex items-center gap-1.5">
-                    <Clock size={14} strokeWidth={2.2} style={{ color: "var(--color-orange)" }} />
-                    {sessionTimeLabel(sessions)}
-                  </li>
-                  <li className="inline-flex items-center gap-1.5">
-                    <Hourglass
-                      size={14}
-                      strokeWidth={2.2}
-                      style={{ color: "var(--color-orange)" }}
-                    />
-                    Live session
-                  </li>
-                  <li className="inline-flex items-center gap-1.5 font-semibold text-teal-deep">
-                    <BadgeCheck size={14} strokeWidth={2.2} />
-                    Live demo included
-                  </li>
-                </ul>
               </div>
 
               <ul className="mt-8 flex list-none flex-col gap-2.5">
