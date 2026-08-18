@@ -46,22 +46,6 @@ export type WebinarSession = {
 export const SESSION_REVALIDATE_SECONDS =
   process.env.NODE_ENV === "development" ? 0 : 300;
 
-/**
- * Slots used only when ERPNext cannot be reached. An outage should cost us the
- * ability to EDIT the dates, never the ability to show the page and take a
- * registration. Deliberately NOT used when ERPNext answers with an empty list —
- * that is a real answer and the page honours it by hiding the dropdown.
- */
-const FALLBACK_ROWS = [
-  { session_date: "2026-08-21", session_time: "16:00:00" },
-  { session_date: "2026-08-28", session_time: "16:00:00" },
-  { session_date: "2026-09-04", session_time: "16:00:00" },
-  { session_date: "2026-09-11", session_time: "16:00:00" },
-];
-
-/** India has no DST, so a fixed offset is exact all year. */
-const IST_OFFSET_MINUTES = 330;
-
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -83,13 +67,6 @@ function formatTime(isoTime: string): string {
   const period = hours >= 12 ? "PM" : "AM";
   const hour12 = hours % 12 === 0 ? 12 : hours % 12;
   return `${hour12}:${pad(minutes)} ${period}`;
-}
-
-/** Today's date in IST — the server's own clock may be on any timezone. */
-function istToday(): string {
-  return new Date(Date.now() + IST_OFFSET_MINUTES * 60_000)
-    .toISOString()
-    .slice(0, 10);
 }
 
 function toSession(row: SessionRow): WebinarSession {
@@ -119,8 +96,12 @@ export async function getWebinarSessions(
     });
     return rows.map(toSession);
   } catch (error) {
-    // Never let an ERPNext problem take the landing page down with it.
-    console.error("[webinarSessions] ERPNext unreachable, using fallback slots", error);
-    return FALLBACK_ROWS.filter((row) => row.session_date >= istToday()).map(toSession);
+    // Never let an ERPNext problem take the landing page down with it — but do
+    // not invent dates either. There is no hardcoded fallback list: a slot the
+    // site cannot confirm against ERPNext must not be offered, because someone
+    // would register for a session that may not exist. The page renders its
+    // "no dates scheduled" state instead, with registration disabled.
+    console.error("[webinarSessions] ERPNext unreachable, offering no slots", error);
+    return [];
   }
 }

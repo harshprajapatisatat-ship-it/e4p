@@ -13,6 +13,7 @@ import {
 } from "@/components/forms/FormKit";
 import { submitLead } from "@/components/forms/submitLead";
 import { COMPANY_SIZES } from "@/lib/leadForm";
+import { ROUTES } from "@/lib/routes";
 import type { WebinarSession } from "@/lib/webinarSessions";
 
 /**
@@ -65,9 +66,14 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
     trailing: slot.time,
   }));
 
-  // Every slot disabled (or all in the past) — there is nothing to register
-  // for, so the form takes the details and promises the next date instead.
+  // Every slot disabled, all in the past, or ERPNext unreachable — there is
+  // nothing real to register against, so registration is blocked rather than
+  // taking a booking for a session that may not exist. The button stays visible
+  // and greyed with the reason in a tooltip, and /contact is offered instead.
   const noSessions = sessions.length === 0;
+  const blockedReason = noSessions
+    ? "No sessions are scheduled right now. Contact us and we will let you know the next date."
+    : undefined;
 
   const [form, setForm] = useState({
     name: "",
@@ -91,7 +97,7 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (sending) return;
+    if (sending || noSessions) return;
 
     // The native inputs have already passed their own validation by now, so only
     // the two listboxes are left to check. With no slots on offer the session
@@ -128,13 +134,11 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
   if (sent) {
     return (
       <div style={{ boxShadow: "0 24px 60px -30px rgba(11,31,51,0.35)", borderRadius: 20 }}>
+        {/* Reachable only when a real slot was chosen — with none on offer the
+            submit button is disabled, so there is no sessionless success case. */}
         <FormSuccess
-          title={noSessions ? "Your details are in" : "Your seat is reserved"}
-          message={
-            noSessions
-              ? "New dates are being scheduled. We will email you the moment the next session opens."
-              : `Check your inbox for the joining link for ${form.session}. We will send a reminder 24 hours before the session.`
-          }
+          title="Your seat is reserved"
+          message={`Check your inbox for the joining link for ${form.session}. We will send a reminder 24 hours before the session.`}
         />
       </div>
     );
@@ -171,6 +175,7 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
 
         {noSessions ? (
           <p
+            id={id("no-sessions")}
             className="rounded-[10px] text-[12.5px] leading-relaxed"
             style={{
               background: "#fff6e8",
@@ -179,8 +184,15 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
               padding: "0.65rem 0.85rem",
             }}
           >
-            New dates are being scheduled. Leave your details and we will email you the moment the
-            next session opens.
+            No sessions are scheduled right now, so registration is closed.{" "}
+            <a
+              href={ROUTES.contact}
+              className="font-semibold underline underline-offset-2"
+              style={{ color: "#8a5a12" }}
+            >
+              Contact us
+            </a>{" "}
+            and we will let you know as soon as the next date is confirmed.
           </p>
         ) : (
           <SelectField
@@ -214,7 +226,12 @@ export default function PharmaWebinarForm({ sessions }: { sessions: readonly Web
 
         {error && <FormError message={error} />}
 
-        <SubmitButton label="Reserve My Free Seat" sendingLabel="Reserving…" sending={sending} />
+        <SubmitButton
+          label="Reserve My Free Seat"
+          sendingLabel="Reserving…"
+          sending={sending}
+          blockedReason={blockedReason}
+        />
 
         <p className="flex items-start gap-2 text-[12px] leading-relaxed text-muted">
           <Lock size={12} strokeWidth={2.2} aria-hidden className="mt-0.5 shrink-0 text-teal" />
