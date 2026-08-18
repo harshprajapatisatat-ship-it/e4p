@@ -1,37 +1,39 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ArrowRight, CheckCircle2, Download, Loader2 } from "lucide-react";
+import { Download, Lock } from "lucide-react";
+
+import {
+  FormError,
+  FormSuccess,
+  SelectField,
+  SubmitButton,
+  TextAreaField,
+  TextField,
+  type SelectOption,
+} from "@/components/forms/FormKit";
+import { submitLead } from "@/components/forms/submitLead";
+import { COMPANY_SIZES, FOCUS_AREAS } from "@/lib/leadForm";
 
 /**
- * Lead capture for the site's two conversions — Book a Free Demo and the free
- * guide. One component serves both because the fields are the same; only the
- * heading, the button label and the confirmation copy differ.
+ * Lead capture for two of the site's three conversions — Book a Free Demo /
+ * Contact us, and the free guide. One component serves all three callers
+ * because the shape is the same; the field set, the heading, the button label
+ * and the confirmation copy differ.
  *
- * There is no backend on this build. `onSubmit` validates, shows the pending
- * state and then the confirmation, and POSTs to `action` only if one is passed —
- * wire it to the real endpoint (Frappe/ERPNext Lead, HubSpot, whatever the CRM
- * is) by passing `action`. It deliberately does not silently pretend to have
- * sent anything: with no `action`, the confirmation says the details are ready
- * to send rather than claiming they were.
+ * Submissions go to /api/forms, which forwards them server-side to the
+ * whitelisted `satat_fca.api.contact.submit_form` method in ERPNext. The
+ * browser never sees the ERPNext URL, and there is no API key anywhere — see
+ * docs/frappe-forms-integration.md.
+ *
+ * The demo and contact variants write a `Contact Enquiry` record; the guide
+ * variant writes a `Guide Download`. Which page it came from is carried on the
+ * record as `source_url`, which is also what separates this site's leads from
+ * the Manufacturing site's in the same ERPNext inbox.
  */
 
-type Field = {
-  name: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-  full?: boolean;
-};
-
-const FIELDS: Field[] = [
-  { name: "name", label: "Full name", required: true, placeholder: "Your name" },
-  { name: "company", label: "Company", required: true, placeholder: "Company name" },
-  { name: "email", label: "Work email", type: "email", required: true, placeholder: "you@company.com" },
-  { name: "phone", label: "Phone", type: "tel", placeholder: "+91" },
-  { name: "message", label: "", placeholder: "", full: true },
-];
+const SIZE_OPTIONS: SelectOption[] = COMPANY_SIZES.map((label) => ({ value: label, label }));
+const FOCUS_OPTIONS: SelectOption[] = FOCUS_AREAS.map((label) => ({ value: label, label }));
 
 /**
  * Everything that differs between the three callers. Held as a map rather than
@@ -44,39 +46,42 @@ const COPY = {
     intro:
       "Tell us a little about your unit and we'll tailor the session to your process rather than run a generic tour.",
     submit: "Book a Free Demo",
-    messageLabel: "What is hardest to prove in your process today?",
-    messagePlaceholder: "Optional — the more specific, the more useful the session",
-    doneTitle: "Your details are ready to send",
-    doneBody: "Thanks — we have your details and will be in touch within one working day.",
+    sending: "Sending…",
+    textLabel: "Tell us about your unit",
+    textPlaceholder:
+      "What you make, how many people run the system today, and what is hardest to prove right now.",
+    doneTitle: "Your request is in",
+    doneBody:
+      "A consultant will reply within one business day with a couple of slots for the session.",
   },
   guide: {
     eyebrow: "Get the free guide",
-    intro: "",
+    intro: "Tell us where to send it and we'll get the guide over to you.",
     submit: "Get the Free Guide",
-    messageLabel: "What is hardest to prove in your process today?",
-    messagePlaceholder: "Optional — the more specific, the more useful the answer",
-    doneTitle: "",
+    sending: "Sending…",
+    textLabel: "What is hardest to prove in your process today?",
+    textPlaceholder: "Batch traceability, documentation, rejections, audit readiness…",
+    doneTitle: "Your request is in",
     doneBody: "",
   },
   contact: {
     eyebrow: "Contact us",
     intro: "We will get back to you as soon as possible.",
     submit: "Send",
-    messageLabel: "Message",
-    messagePlaceholder: "Tell us about your unit and what you are trying to solve",
-    doneTitle: "Your message is ready to send",
-    doneBody: "Thanks — we have your message and will get back to you as soon as possible.",
+    sending: "Sending…",
+    textLabel: "Message",
+    textPlaceholder: "Tell us about your unit and what you are trying to solve",
+    doneTitle: "Thanks, your message is in",
+    doneBody:
+      "A consultant will get back to you within one business day. If it is urgent, call us on +91 87990 27217.",
   },
 } as const;
 
 export default function PharmaLeadForm({
   variant,
-  action,
   downloadHref,
 }: {
   variant: "demo" | "guide" | "contact";
-  /** Real submission endpoint. Omit and the form runs in preview mode. */
-  action?: string;
   /**
    * The gated asset handed over once the form is submitted. Omit it and the
    * confirmation says the guide is on its way instead of rendering a download
@@ -86,173 +91,210 @@ export default function PharmaLeadForm({
   downloadHref?: string;
 }) {
   const uid = useId();
-  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
-
   const copy = COPY[variant];
   const guide = variant === "guide";
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [form, setForm] = useState({
+    name: "",
+    company: "",
+    email: "",
+    phone: "",
+    focus: "",
+    size: "",
+    message: "",
+    challenge: "",
+  });
+  // The two dropdowns are custom listboxes, so neither can carry `required` —
+  // submit enforces them and this drives the invalid styling.
+  const [missing, setMissing] = useState({ focus: false, size: false });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const id = (n: string) => `${uid}-${n}`;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (state !== "idle") return;
-    setState("sending");
-    const body = new FormData(e.currentTarget);
-    try {
-      if (action) {
-        await fetch(action, { method: "POST", body });
-      }
-    } finally {
-      setState("done");
+    if (sending) return;
+
+    // Native controls have passed their own validation by now, so only the two
+    // listboxes are left to check — and the guide form does not render them.
+    if (!guide && (!form.focus || !form.size)) {
+      setMissing({ focus: !form.focus, size: !form.size });
+      setError("Please complete the highlighted fields.");
+      document.getElementById(id(form.focus ? "size" : "focus"))?.focus();
+      return;
     }
+
+    setMissing({ focus: false, size: false });
+    setError(null);
+    setSending(true);
+
+    const result = await submitLead(guide ? "guide" : "contact", form);
+
+    setSending(false);
+
+    if (!result.ok) {
+      setError(result.error);
+      // Re-flag the two listboxes if the server rejected them.
+      setMissing({
+        focus: Boolean(result.fieldErrors?.focus),
+        size: Boolean(result.fieldErrors?.size),
+      });
+      return;
+    }
+
+    setSent(true);
   }
 
-  if (state === "done") {
-    return (
-      <div
-        className="rounded-[20px] border border-line bg-white p-7 text-center"
-        role="status"
-        aria-live="polite"
-      >
-        <span
-          className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
-          style={{ background: "var(--state-released-bg)" }}
+  if (sent) {
+    // The gate opens here. On the guide the whole point of the form is the PDF
+    // behind it, so the download IS the confirmation — not a line of copy
+    // promising one will arrive by email later.
+    if (guide) {
+      return (
+        <FormSuccess
+          title={downloadHref ? "Your guide is ready" : "On its way to your inbox"}
+          message={
+            downloadHref
+              ? "Download the PDF below — the complete manufacturing flow, from materials entering the plant to a finished batch reaching the customer."
+              : "We have your details and will email the guide shortly. If it does not land within a few minutes, check spam or promotions."
+          }
         >
-          <CheckCircle2
-            size={24}
-            strokeWidth={2.2}
-            style={{ color: "var(--state-released)" }}
-          />
-        </span>
-        <p className="mt-4 text-[18px] font-extrabold tracking-tight text-ink">
-          {!guide ? copy.doneTitle : downloadHref ? "Your guide is ready" : "Your request is in"}
-        </p>
+          {downloadHref && (
+            <a
+              href={downloadHref}
+              download
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-orange px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#d4760a]"
+            >
+              <Download size={17} strokeWidth={2.3} />
+              Download the guide (PDF)
+            </a>
+          )}
+        </FormSuccess>
+      );
+    }
 
-        {/* The gate opens here. On the guide the whole point of the form is the
-            PDF behind it, so the download is the confirmation — not a line of
-            copy promising one will arrive by email later. */}
-        {!guide ? (
-          <p className="mx-auto mt-2 max-w-[46ch] text-[14px] leading-relaxed text-muted">
-            {action
-              ? copy.doneBody
-              : "This build has no form endpoint connected yet, so nothing was transmitted. Pass an `action` to PharmaLeadForm to send it to your CRM."}
-          </p>
-        ) : (
-          <>
-            <p className="mx-auto mt-2 max-w-[46ch] text-[14px] leading-relaxed text-muted">
-              {downloadHref
-                ? "Download the PDF below — the complete manufacturing flow, from materials entering the plant to a finished batch reaching the customer."
-                : "The guide PDF has not been added to this build yet, so there is nothing to hand over on this step. Drop the file into public/ and this becomes a download button."}
-            </p>
-            {downloadHref && (
-              <a
-                href={downloadHref}
-                download
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-orange px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#d4760a]"
-              >
-                <Download size={17} strokeWidth={2.3} />
-                Download the guide (PDF)
-              </a>
-            )}
-            {!action && (
-              <p className="mx-auto mt-4 max-w-[46ch] text-[12.5px] leading-relaxed text-muted/80">
-                Your details were not transmitted — this build has no form endpoint
-                connected yet. Pass an <code>action</code> to PharmaLeadForm to send them
-                to your CRM.
-              </p>
-            )}
-          </>
-        )}
-      </div>
-    );
+    return <FormSuccess title={copy.doneTitle} message={copy.doneBody} />;
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-[20px] border border-line bg-white p-6 sm:p-7"
-      noValidate={false}
-    >
+    <form onSubmit={handleSubmit} className="rounded-[20px] border border-line bg-white p-6 sm:p-7">
       <p className="eyebrow" style={{ color: "var(--color-orange)", letterSpacing: "0.18em" }}>
         {copy.eyebrow}
       </p>
       <p className="mt-2.5 text-[14px] leading-relaxed text-muted">
-        {!guide
-          ? copy.intro
-          : downloadHref
-            ? "Fill this in and the guide unlocks straight away — the PDF downloads on the next step."
-            : "Tell us where to send it and we'll get the guide over to you."}
+        {guide && downloadHref
+          ? "Fill this in and the guide unlocks straight away — the PDF downloads on the next step."
+          : copy.intro}
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {FIELDS.map((f) => {
-          const id = `${uid}-${f.name}`;
-          const isArea = f.name === "message";
-          const label = isArea ? copy.messageLabel : f.label;
-          const placeholder = isArea ? copy.messagePlaceholder : f.placeholder;
-          return (
-            <div key={f.name} className={f.full ? "sm:col-span-2" : ""}>
-              <label htmlFor={id} className="block text-[13px] font-semibold text-ink">
-                {label}
-                {f.required && (
-                  <span className="ml-1 text-orange" aria-hidden>
-                    *
-                  </span>
-                )}
-              </label>
-              {isArea ? (
-                <textarea
-                  id={id}
-                  name={f.name}
-                  rows={3}
-                  placeholder={placeholder}
-                  className="mt-1.5 w-full resize-y rounded-[10px] border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-orange"
-                />
-              ) : (
-                <input
-                  id={id}
-                  name={f.name}
-                  type={f.type ?? "text"}
-                  required={f.required}
-                  placeholder={placeholder}
-                  autoComplete={
-                    f.name === "email"
-                      ? "email"
-                      : f.name === "phone"
-                        ? "tel"
-                        : f.name === "name"
-                          ? "name"
-                          : f.name === "company"
-                            ? "organization"
-                            : "off"
-                  }
-                  className="mt-1.5 w-full rounded-[10px] border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-orange"
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <div className="mt-6 flex flex-col gap-3.5">
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <TextField
+            id={id("name")}
+            name="name"
+            label="Full Name"
+            placeholder="Your name"
+            value={form.name}
+            onChange={handleChange}
+            autoComplete="name"
+          />
+          <TextField
+            id={id("company")}
+            name="company"
+            label="Company"
+            placeholder="Company name"
+            value={form.company}
+            onChange={handleChange}
+            autoComplete="organization"
+          />
+        </div>
 
-      <button
-        type="submit"
-        disabled={state === "sending"}
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-orange px-8 py-4 text-[16px] font-semibold text-white transition-colors hover:bg-[#d4760a] disabled:opacity-70"
-      >
-        {state === "sending" ? (
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <TextField
+            id={id("email")}
+            name="email"
+            type="email"
+            label="Work Email"
+            placeholder="you@company.com"
+            value={form.email}
+            onChange={handleChange}
+            autoComplete="email"
+          />
+          <TextField
+            id={id("phone")}
+            name="phone"
+            type="tel"
+            label="Phone Number"
+            placeholder="+91 00000 00000"
+            value={form.phone}
+            onChange={handleChange}
+            autoComplete="tel"
+            // The guide form asks for the least it can get away with — the PDF
+            // is the trade, and a required phone number costs downloads.
+            optional={guide}
+          />
+        </div>
+
+        {/* Both Selects are required by `submit_form` for a Contact Enquiry, so
+            the guide variant cannot render them and the demo/contact ones must. */}
+        {!guide && (
           <>
-            <Loader2 size={18} strokeWidth={2.4} className="animate-spin" />
-            Sending
-          </>
-        ) : (
-          <>
-            {copy.submit}
-            <ArrowRight size={18} strokeWidth={2.4} />
+            <SelectField
+              id={id("focus")}
+              label="What do you want to fix first?"
+              value={form.focus}
+              onChange={(focus) => {
+                setForm((prev) => ({ ...prev, focus }));
+                setMissing((prev) => ({ ...prev, focus: false }));
+              }}
+              options={FOCUS_OPTIONS}
+              placeholder="Select the biggest pain point"
+              ariaLabel="What do you want to fix first"
+              invalid={missing.focus}
+            />
+            <SelectField
+              id={id("size")}
+              label="Company Size"
+              value={form.size}
+              onChange={(size) => {
+                setForm((prev) => ({ ...prev, size }));
+                setMissing((prev) => ({ ...prev, size: false }));
+              }}
+              options={SIZE_OPTIONS}
+              placeholder="Select size"
+              ariaLabel="Company size"
+              invalid={missing.size}
+            />
           </>
         )}
-      </button>
 
-      <p className="mt-3 text-center text-[12px] leading-relaxed text-muted">
-        We use your details only to respond to this request.
-      </p>
+        {/* Contact and demo write `message`; the guide writes `biggest_challenge`.
+            Two different Doctype fields, so they are two different state keys. */}
+        <TextAreaField
+          id={id(guide ? "challenge" : "message")}
+          name={guide ? "challenge" : "message"}
+          label={copy.textLabel}
+          placeholder={copy.textPlaceholder}
+          value={guide ? form.challenge : form.message}
+          onChange={handleChange}
+          rows={3}
+          optional
+        />
+
+        {error && <FormError message={error} />}
+
+        <SubmitButton label={copy.submit} sendingLabel={copy.sending} sending={sending} />
+
+        <p className="flex items-start gap-2 text-[12px] leading-relaxed text-muted">
+          <Lock size={12} strokeWidth={2.2} aria-hidden className="mt-0.5 shrink-0 text-teal" />
+          We use your details only to respond to this request. Never sold, never shared.
+        </p>
+      </div>
     </form>
   );
 }

@@ -3,6 +3,7 @@ import { Clock, Hourglass, BadgeCheck, Video } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PharmaWebinarForm from "@/components/pharma/PharmaWebinarForm";
+import { getWebinarSessions, type WebinarSession } from "@/lib/webinarSessions";
 
 /**
  * Webinar registration — the destination every "Book a Free Demo" points at.
@@ -25,18 +26,26 @@ export const metadata: Metadata = {
 };
 
 /**
- * Sessions. These are carried over from the Manufacturing webinar as-is — they
- * are the only real session times available — so CONFIRM THEM before this page
- * goes live: dates for a pharma session are a factual claim, not styling. The
- * same list feeds the date picker below and the form's dropdown, so editing
- * here changes both.
+ * Sessions are no longer written here. They live in the `Webinar Session`
+ * Doctype in ERPNext, and are read at request time — enabled and not-yet-past
+ * slots only. Add, move or retire a date in ERPNext and this page follows with
+ * no deploy. The same list feeds the date picker below and the form's dropdown,
+ * so the two cannot drift apart.
  */
-const SESSIONS = [
-  { date: "21 Aug 2026", time: "4:00 PM" },
-  { date: "28 Aug 2026", time: "4:00 PM" },
-  { date: "04 Sep 2026", time: "4:00 PM" },
-  { date: "11 Sep 2026", time: "4:00 PM" },
-];
+
+/** Shown wherever a time is expected but nothing is scheduled. */
+const TBA_LABEL = "To be announced";
+
+/**
+ * `"4:00 PM IST"` when every slot runs at the same hour, otherwise
+ * `"Multiple times"` — the strip below the dates can only show one value.
+ */
+function sessionTimeLabel(sessions: readonly WebinarSession[]): string {
+  if (sessions.length === 0) return TBA_LABEL;
+  return sessions.every((slot) => slot.time === sessions[0].time)
+    ? `${sessions[0].time} IST`
+    : "Multiple times";
+}
 
 const WHAT_YOU_GET = [
   "Live ERPNext demo on real pharma manufacturing data",
@@ -44,7 +53,9 @@ const WHAT_YOU_GET = [
   "Open Q&A — bring the part of your process that is hardest to prove",
 ];
 
-export default function PharmaWebinarPage() {
+export default async function PharmaWebinarPage() {
+  const sessions = await getWebinarSessions();
+
   return (
     <>
       <Header />
@@ -90,33 +101,45 @@ export default function PharmaWebinarPage() {
                 style={{ borderColor: "var(--color-line)", background: "var(--color-surface)" }}
               >
                 <p className="eyebrow" style={{ letterSpacing: "0.18em" }}>
-                  Choose the date that suits you
+                  {sessions.length > 0
+                    ? "Choose the date that suits you"
+                    : "Next date being scheduled"}
                 </p>
 
-                <ul className="mt-4 flex list-none flex-wrap gap-2.5">
-                  {SESSIONS.map((s, i) => (
-                    <li
-                      key={s.date}
-                      className="inline-flex items-center gap-2 rounded-pill border bg-white px-3.5 py-2 text-[13.5px]"
-                      style={{
-                        borderColor: i === 0 ? "var(--color-orange)" : "var(--color-line)",
-                        background: i === 0 ? "rgba(247,148,30,0.06)" : "#fff",
-                      }}
-                    >
-                      <span className="font-bold text-ink">{s.date}</span>
-                      <span className="text-muted">·</span>
-                      <span className="text-muted">{s.time}</span>
-                      {i === 0 && (
-                        <span
-                          className="eyebrow rounded-pill px-2 py-0.5 text-white"
-                          style={{ background: "var(--color-orange)", letterSpacing: "0.12em" }}
-                        >
-                          Next
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                {/* An empty list is a real answer from ERPNext — every slot is
+                    disabled or past — so say so rather than render an empty row.
+                    The form stays up and still takes the registration. */}
+                {sessions.length === 0 ? (
+                  <p className="mt-4 text-[14px] leading-relaxed text-muted">
+                    We are scheduling the next session. Register on the right and we will email you
+                    the moment the date is confirmed.
+                  </p>
+                ) : (
+                  <ul className="mt-4 flex list-none flex-wrap gap-2.5">
+                    {sessions.map((s, i) => (
+                      <li
+                        key={s.value}
+                        className="inline-flex items-center gap-2 rounded-pill border bg-white px-3.5 py-2 text-[13.5px]"
+                        style={{
+                          borderColor: i === 0 ? "var(--color-orange)" : "var(--color-line)",
+                          background: i === 0 ? "rgba(247,148,30,0.06)" : "#fff",
+                        }}
+                      >
+                        <span className="font-bold text-ink">{s.date}</span>
+                        <span className="text-muted">·</span>
+                        <span className="text-muted">{s.time}</span>
+                        {i === 0 && (
+                          <span
+                            className="eyebrow rounded-pill px-2 py-0.5 text-white"
+                            style={{ background: "var(--color-orange)", letterSpacing: "0.12em" }}
+                          >
+                            Next
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
                 <hr
                   className="my-5 border-0 border-t"
@@ -126,7 +149,7 @@ export default function PharmaWebinarPage() {
                 <ul className="flex list-none flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-muted">
                   <li className="inline-flex items-center gap-1.5">
                     <Clock size={14} strokeWidth={2.2} style={{ color: "var(--color-orange)" }} />
-                    4:00 PM IST
+                    {sessionTimeLabel(sessions)}
                   </li>
                   <li className="inline-flex items-center gap-1.5">
                     <Hourglass
@@ -159,9 +182,7 @@ export default function PharmaWebinarPage() {
 
             {/* ── Right: the form ─────────────────────────────────────── */}
             <div className="lg:sticky lg:top-[96px]">
-              <PharmaWebinarForm
-                sessions={SESSIONS.map((s) => `${s.date} · ${s.time}`)}
-              />
+              <PharmaWebinarForm sessions={sessions} />
             </div>
           </div>
         </div>
