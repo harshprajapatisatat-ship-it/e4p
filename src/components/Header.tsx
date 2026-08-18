@@ -123,7 +123,7 @@ const MENUS: Record<string, MenuData> = {
     description:
       "Guides and references to help pharma teams build a process that documents itself.",
     cta: "Get the free compliance guide",
-    ctaHref: "/resources/pharma-compliance-guide",
+    ctaHref: ROUTES.guide,
     columns: [
       {
         items: [
@@ -131,7 +131,7 @@ const MENUS: Record<string, MenuData> = {
             icon: BookOpen,
             title: "Pharma Compliance Guide",
             desc: "",
-            href: "/resources/pharma-compliance-guide",
+            href: ROUTES.guide,
             badge: "FREE",
           },
           { icon: Scale, title: "Schedule M Overview", desc: "", href: "/#schedule-m" },

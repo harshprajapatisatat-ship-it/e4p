@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "ERPNext for Pharma Manufacturing — Free Guide | Satat Technologies",
   description:
     "See what a controlled pharmaceutical manufacturing operation looks like on ERPNext: batch and material management, traceability, production planning, manufacturing, cost and margins, and quality checks in one flow.",
-  alternates: { canonical: "/resources/pharma-compliance-guide" },
+  alternates: { canonical: "/pharma-compliance-guide" },
   openGraph: {
     title: "ERPNext for Pharma Manufacturing — Free Guide",
     description:

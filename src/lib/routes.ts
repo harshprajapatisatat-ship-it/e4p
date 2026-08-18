@@ -15,7 +15,7 @@
  * Compliance Guide" and "View Schedule M Guidelines" — so the path is named
  * once and shared rather than repeated.
  */
-const GUIDE = "/resources/pharma-compliance-guide";
+const GUIDE = "/pharma-compliance-guide";
 
 /**
  * Official CDSCO Schedule M source, supplied by the client. Do not rewrite,
