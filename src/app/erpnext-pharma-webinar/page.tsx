@@ -106,7 +106,7 @@ export default async function PharmaWebinarPage() {
                     pick one HERE, and the pills below reinforced it — people
                     clicked them and nothing happened. This block only ANNOUNCES
                     the dates; the actual choosing is the dropdown in the form. */}
-                <p className="eyebrow" style={{ letterSpacing: "0.18em" }}>
+                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-muted">
                   {sessions.length > 0 ? "Upcoming sessions" : "Next date being scheduled"}
                 </p>
 
@@ -128,34 +128,33 @@ export default async function PharmaWebinarPage() {
                         the same shape this site uses for buttons, so it read as
                         selectable; rows separated by hairlines read as a
                         schedule, which is what this is. */}
-                    <ul className="mt-4 list-none">
-                      {sessions.map((s, i) => (
-                        <li
-                          key={s.value}
-                          className="flex items-center justify-between gap-4 border-t py-3 first:border-t-0 first:pt-1"
-                          style={{ borderColor: "var(--color-line)" }}
-                        >
-                          <span className="flex min-w-0 items-center gap-2.5">
-                            <span className="truncate text-[14.5px] font-bold text-ink">
-                              {s.date}
-                            </span>
-                            {i === 0 && (
-                              <span
-                                className="eyebrow shrink-0 rounded-pill px-2 py-0.5 text-white"
-                                style={{
-                                  background: "var(--color-orange)",
-                                  letterSpacing: "0.12em",
-                                }}
-                              >
-                                Next
+                    <ul className="mt-3 list-none">
+                      {sessions.map((s, i) => {
+                        const isNext = i === 0;
+                        return (
+                          <li
+                            key={s.value}
+                            className="flex items-center justify-between gap-4 border-t border-line py-2.5 first:border-t-0 first:pt-1"
+                          >
+                            <span className="flex min-w-0 items-center gap-2.5">
+                              <span className="truncate text-[13.5px] font-semibold text-ink">
+                                {s.date}
                               </span>
-                            )}
-                          </span>
-                          <span className="shrink-0 text-[13.5px] tabular-nums text-muted">
-                            {s.time}
-                          </span>
-                        </li>
-                      ))}
+                              {isNext && (
+                                <span
+                                  className="shrink-0 rounded-pill px-2 py-0.5 text-[10.5px] font-bold uppercase leading-none tracking-[0.08em]"
+                                  style={{ background: "var(--color-orange)", color: "#fff" }}
+                                >
+                                  Next
+                                </span>
+                              )}
+                            </span>
+                            <span className="shrink-0 text-[12.5px] tabular-nums text-muted">
+                              {s.time}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
 
                   </>
