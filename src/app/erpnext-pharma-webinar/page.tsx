@@ -102,10 +102,12 @@ export default async function PharmaWebinarPage() {
                 className="mt-8 rounded-[18px] border p-6"
                 style={{ borderColor: "var(--color-line)", background: "var(--color-surface)" }}
               >
+                {/* "Choose the date that suits you" read as an instruction to
+                    pick one HERE, and the pills below reinforced it — people
+                    clicked them and nothing happened. This block only ANNOUNCES
+                    the dates; the actual choosing is the dropdown in the form. */}
                 <p className="eyebrow" style={{ letterSpacing: "0.18em" }}>
-                  {sessions.length > 0
-                    ? "Choose the date that suits you"
-                    : "Next date being scheduled"}
+                  {sessions.length > 0 ? "Upcoming sessions" : "Next date being scheduled"}
                 </p>
 
                 {/* An empty list is a real answer from ERPNext — every slot is
@@ -121,30 +123,45 @@ export default async function PharmaWebinarPage() {
                     and we will let you know as soon as the date is confirmed.
                   </p>
                 ) : (
-                  <ul className="mt-4 flex list-none flex-wrap gap-2.5">
-                    {sessions.map((s, i) => (
-                      <li
-                        key={s.value}
-                        className="inline-flex items-center gap-2 rounded-pill border bg-white px-3.5 py-2 text-[13.5px]"
-                        style={{
-                          borderColor: i === 0 ? "var(--color-orange)" : "var(--color-line)",
-                          background: i === 0 ? "rgba(247,148,30,0.06)" : "#fff",
-                        }}
-                      >
-                        <span className="font-bold text-ink">{s.date}</span>
-                        <span className="text-muted">·</span>
-                        <span className="text-muted">{s.time}</span>
-                        {i === 0 && (
-                          <span
-                            className="eyebrow rounded-pill px-2 py-0.5 text-white"
-                            style={{ background: "var(--color-orange)", letterSpacing: "0.12em" }}
-                          >
-                            Next
+                  <>
+                    {/* A plain list, not pills. A bordered pill on a pale fill is
+                        the same shape this site uses for buttons, so it read as
+                        selectable; rows separated by hairlines read as a
+                        schedule, which is what this is. */}
+                    <ul className="mt-4 list-none">
+                      {sessions.map((s, i) => (
+                        <li
+                          key={s.value}
+                          className="flex items-center justify-between gap-4 border-t py-3 first:border-t-0 first:pt-1"
+                          style={{ borderColor: "var(--color-line)" }}
+                        >
+                          <span className="flex min-w-0 items-center gap-2.5">
+                            <span className="truncate text-[14.5px] font-bold text-ink">
+                              {s.date}
+                            </span>
+                            {i === 0 && (
+                              <span
+                                className="eyebrow shrink-0 rounded-pill px-2 py-0.5 text-white"
+                                style={{
+                                  background: "var(--color-orange)",
+                                  letterSpacing: "0.12em",
+                                }}
+                              >
+                                Next
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                          <span className="shrink-0 text-[13.5px] tabular-nums text-muted">
+                            {s.time}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <p className="mt-3.5 text-[12.5px] leading-relaxed text-muted">
+                      Pick the session you want in the registration form.
+                    </p>
+                  </>
                 )}
 
                 <hr
