@@ -180,6 +180,14 @@ const NAV_LINKS: { label: string; href: string }[] = [
  */
 const CTA = { label: CTA_LABELS.joinWebinar, href: ROUTES.demo };
 
+/**
+ * Secondary conversion, sat beside the CTA. Rendered as a plain link rather
+ * than a second button so the bar keeps exactly one filled control and the
+ * hierarchy stays readable — the webinar is the primary conversion, the guide
+ * is the softer alternative for anyone not ready to book a seat.
+ */
+const GUIDE_CTA = { label: CTA_LABELS.guide, href: ROUTES.guide };
+
 export default function Header() {
   const pathname = usePathname();
   const [active, setActive] = useState<string | null>(null);
@@ -378,6 +386,17 @@ export default function Header() {
               </nav>
 
               <div className="flex items-center gap-6">
+                <Link
+                  href={GUIDE_CTA.href}
+                  onMouseEnter={scheduleClose}
+                  aria-current={pathname === GUIDE_CTA.href ? "page" : undefined}
+                  className={`hidden whitespace-nowrap text-[15px] font-medium transition-colors lg:inline-flex ${
+                    pathname === GUIDE_CTA.href ? "text-orange" : "text-ink/90 hover:text-ink"
+                  }`}
+                >
+                  {GUIDE_CTA.label}
+                </Link>
+
                 <Link
                   href={CTA.href}
                   className="hidden items-center gap-2 rounded-lg bg-orange px-5 py-2.5 text-[14.5px] font-semibold text-white transition-colors hover:bg-[#e8870f] lg:inline-flex"
@@ -596,6 +615,14 @@ export default function Header() {
               className="block w-full rounded-lg bg-orange px-5 py-4 text-center text-[15px] font-semibold text-white transition-colors hover:bg-[#e8870f]"
             >
               {CTA.label}
+            </Link>
+
+            <Link
+              href={GUIDE_CTA.href}
+              onClick={closeMobile}
+              className="mt-3 block w-full rounded-lg border border-line px-5 py-4 text-center text-[15px] font-semibold text-ink transition-colors hover:border-orange hover:text-orange"
+            >
+              {GUIDE_CTA.label}
             </Link>
           </div>
         </nav>
