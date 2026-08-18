@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Clock, Hourglass, BadgeCheck, Video } from "lucide-react";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import PharmaWebinarForm from "@/components/pharma/PharmaWebinarForm";
 import { getWebinarSessions, type WebinarSession } from "@/lib/webinarSessions";
+import { ROUTES } from "@/lib/routes";
 
 /**
  * Webinar registration — the destination every "Book a Free Demo" points at.
@@ -58,7 +60,7 @@ export default async function PharmaWebinarPage() {
 
   return (
     <>
-      <Header />
+      <SiteHeader />
       <main className="relative isolate overflow-hidden bg-white pb-20 pt-[104px] lg:pb-28">
         <div
           aria-hidden
@@ -108,11 +110,15 @@ export default async function PharmaWebinarPage() {
 
                 {/* An empty list is a real answer from ERPNext — every slot is
                     disabled or past — so say so rather than render an empty row.
-                    The form stays up and still takes the registration. */}
+                    Registration is disabled in that state, so this must not tell
+                    anyone to use the form; it points at /contact instead. */}
                 {sessions.length === 0 ? (
                   <p className="mt-4 text-[14px] leading-relaxed text-muted">
-                    We are scheduling the next session. Register on the right and we will email you
-                    the moment the date is confirmed.
+                    We are scheduling the next session, so registration is closed for now.{" "}
+                    <Link href={ROUTES.contact} className="font-semibold text-orange underline underline-offset-2">
+                      Contact us
+                    </Link>{" "}
+                    and we will let you know as soon as the date is confirmed.
                   </p>
                 ) : (
                   <ul className="mt-4 flex list-none flex-wrap gap-2.5">

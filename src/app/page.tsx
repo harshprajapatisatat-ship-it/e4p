@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import PharmaHome, { homeJsonLd } from "@/components/pharma/PharmaHome";
 
@@ -41,7 +41,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
       />
-      <Header />
+      <SiteHeader />
       <PharmaHome />
       <Footer />
     </>
