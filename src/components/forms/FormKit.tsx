@@ -196,31 +196,49 @@ export function FormError({ message }: { message: string }) {
   );
 }
 
-/** Orange submit button with its sending state. */
+/**
+ * Orange submit button, with a sending state and a blocked state.
+ *
+ * `blockedReason` greys the button out and puts the reason in a tooltip rather
+ * than hiding the button — the visitor can still see what the form is for and
+ * why they cannot use it yet, which an absent button does not tell them. It is
+ * also mirrored into `aria-describedby` text by the caller where the reason
+ * needs to be readable without a hover.
+ */
 export function SubmitButton({
   label,
   sendingLabel,
   sending,
+  blockedReason,
 }: {
   label: string;
   sendingLabel: string;
   sending: boolean;
+  /** Non-empty disables the button and becomes its tooltip. */
+  blockedReason?: string;
 }) {
+  const blocked = Boolean(blockedReason);
+  const inert = blocked || sending;
+
   return (
     <button
       type="submit"
-      disabled={sending}
-      className="mt-1 flex w-full items-center justify-center gap-2 rounded-[10px] px-8 py-4 text-[15.5px] font-bold text-white transition-colors"
+      disabled={inert}
+      title={blockedReason}
+      aria-disabled={inert || undefined}
+      className="mt-1 flex w-full items-center justify-center gap-2 rounded-[10px] px-8 py-4 text-[15.5px] font-bold transition-colors"
       style={{
-        background: sending ? "#5a6b7b" : "var(--color-orange)",
-        cursor: sending ? "not-allowed" : "pointer",
+        background: blocked ? "#e4ebf2" : sending ? "#5a6b7b" : "var(--color-orange)",
+        color: blocked ? "#8a9bab" : "#fff",
+        border: blocked ? "1px solid #d5e3f0" : "1px solid transparent",
+        cursor: inert ? "not-allowed" : "pointer",
         letterSpacing: "0.02em",
       }}
       onMouseEnter={(e) => {
-        if (!sending) e.currentTarget.style.background = "#d4760a";
+        if (!inert) e.currentTarget.style.background = "#d4760a";
       }}
       onMouseLeave={(e) => {
-        if (!sending) e.currentTarget.style.background = "var(--color-orange)";
+        if (!inert) e.currentTarget.style.background = "var(--color-orange)";
       }}
     >
       {sending && <Loader2 size={17} strokeWidth={2.4} className="animate-spin" />}
