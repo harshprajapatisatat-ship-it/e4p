@@ -15,12 +15,12 @@ import { ROUTES } from "@/lib/routes";
  * same shape (headline, lede, date picker, what you get) with pharma copy.
  */
 export const metadata: Metadata = {
-  title: "Free ERPNext Pharma Manufacturing Webinar | Satat Technologies",
+  title: "ERPNext Pharma Manufacturing Webinar | Satat Technologies",
   description:
-    "A free live session for pharmaceutical manufacturers — see how ERPNext runs batch traceability, documentation, quality control and audit readiness in one connected system. Live demo included.",
+    "A live session for pharmaceutical manufacturers — see how ERPNext runs batch traceability, documentation, quality control and audit readiness in one connected system. Live demo included.",
   alternates: { canonical: "/erpnext-pharma-webinar" },
   openGraph: {
-    title: "Free ERPNext Pharma Manufacturing Webinar",
+    title: "ERPNext Pharma Manufacturing Webinar",
     description:
       "See how ERPNext runs batch traceability, documentation, quality control and audit readiness in one connected system. Live demo included.",
     type: "website",
@@ -80,7 +80,7 @@ export default async function PharmaWebinarPage() {
                 style={{ color: "var(--color-orange)", letterSpacing: "0.16em" }}
               >
                 <Video size={14} strokeWidth={2.4} />
-                Free live webinar · Pharma
+                Live webinar · Pharma
               </p>
 
               <h1 className="display-lg mt-5 text-balance text-ink">
@@ -92,7 +92,7 @@ export default async function PharmaWebinarPage() {
                 className="mt-5 text-balance leading-relaxed text-muted"
                 style={{ fontSize: "clamp(0.95rem,1.15vw,1.075rem)", maxWidth: "56ch" }}
               >
-                A free live session for pharmaceutical manufacturers — see exactly how ERPNext
+                A live session for pharmaceutical manufacturers — see exactly how ERPNext
                 runs batch traceability, documentation, quality control and audit readiness in
                 one connected system. Live demo included.
               </p>
@@ -158,9 +158,6 @@ export default async function PharmaWebinarPage() {
                       ))}
                     </ul>
 
-                    <p className="mt-3.5 text-[12.5px] leading-relaxed text-muted">
-                      Pick the session you want in the registration form.
-                    </p>
                   </>
                 )}
 
@@ -184,7 +181,7 @@ export default async function PharmaWebinarPage() {
                   </li>
                   <li className="inline-flex items-center gap-1.5 font-semibold text-teal-deep">
                     <BadgeCheck size={14} strokeWidth={2.2} />
-                    100% Free
+                    Live demo included
                   </li>
                 </ul>
               </div>
