@@ -65,10 +65,10 @@ const COPY = {
     doneBody: "",
   },
   contact: {
-    eyebrow: "Contact us",
+    eyebrow: "Get in touch",
     intro: "We will get back to you as soon as possible.",
-    submit: "Send",
-    sending: "Sending…",
+    submit: "Submit",
+    sending: "Submitting…",
     textLabel: "Message",
     textPlaceholder: "Tell us about your unit and what you are trying to solve",
     doneTitle: "Thanks, your message is in",

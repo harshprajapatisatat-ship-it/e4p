@@ -65,7 +65,7 @@ export default function ContactPage() {
               style={{ color: "var(--color-orange)", letterSpacing: "0.16em" }}
             >
               <MessageSquare size={14} strokeWidth={2.4} />
-              Contact us
+              Get in touch
             </p>
 
             <h1 className="display-lg mt-5 text-balance text-ink">
