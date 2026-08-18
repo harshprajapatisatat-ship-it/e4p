@@ -180,8 +180,39 @@ const NAV_LINKS: { label: string; href: string }[] = [
  */
 const CTA = { label: CTA_LABELS.joinWebinar, href: ROUTES.demo };
 
-export default function Header() {
+/**
+ * Secondary conversion, sat beside the CTA. Rendered as a plain link rather
+ * than a second button so the bar keeps exactly one filled control and the
+ * hierarchy stays readable — the webinar is the primary conversion, the guide
+ * is the softer alternative for anyone not ready to book a seat.
+ *
+ * The two swap roles when nothing is scheduled: see `hasSessions` below.
+ */
+const GUIDE_CTA = { label: CTA_LABELS.guide, href: ROUTES.guide };
+
+export default function Header({
+  hasSessions = true,
+}: {
+  /**
+   * Whether ERPNext currently has a bookable pharma session. Resolved by
+   * SiteHeader, which is what every page mounts.
+   *
+   * Defaults to true so the bar renders its normal state if a caller forgets —
+   * the webinar page handles an empty list on its own either way.
+   */
+  hasSessions?: boolean;
+}) {
   const pathname = usePathname();
+
+  /**
+   * With no session on offer, "Join Webinar" would send people to a page where
+   * registration is disabled, so the guide takes the primary slot instead and
+   * the webinar link is simply not rendered. Nothing is removed: add a slot in
+   * ERPNext and the bar returns to its two-action layout on the next
+   * revalidation, with no deploy.
+   */
+  const primary = hasSessions ? CTA : GUIDE_CTA;
+  const secondary = hasSessions ? GUIDE_CTA : null;
   const [active, setActive] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -378,11 +409,24 @@ export default function Header() {
               </nav>
 
               <div className="flex items-center gap-6">
+                {secondary && (
+                  <Link
+                    href={secondary.href}
+                    onMouseEnter={scheduleClose}
+                    aria-current={pathname === secondary.href ? "page" : undefined}
+                    className={`hidden whitespace-nowrap text-[15px] font-medium transition-colors lg:inline-flex ${
+                      pathname === secondary.href ? "text-orange" : "text-ink/90 hover:text-ink"
+                    }`}
+                  >
+                    {secondary.label}
+                  </Link>
+                )}
+
                 <Link
-                  href={CTA.href}
-                  className="hidden items-center gap-2 rounded-lg bg-orange px-5 py-2.5 text-[14.5px] font-semibold text-white transition-colors hover:bg-[#e8870f] lg:inline-flex"
+                  href={primary.href}
+                  className="hidden items-center gap-2 whitespace-nowrap rounded-lg bg-orange px-5 py-2.5 text-[14.5px] font-semibold text-white transition-colors hover:bg-[#e8870f] lg:inline-flex"
                 >
-                  {CTA.label}
+                  {primary.label}
                 </Link>
 
                 <button
@@ -591,12 +635,22 @@ export default function Header() {
 
           <div className="px-5 pb-8 pt-6">
             <Link
-              href={CTA.href}
+              href={primary.href}
               onClick={closeMobile}
               className="block w-full rounded-lg bg-orange px-5 py-4 text-center text-[15px] font-semibold text-white transition-colors hover:bg-[#e8870f]"
             >
-              {CTA.label}
+              {primary.label}
             </Link>
+
+            {secondary && (
+              <Link
+                href={secondary.href}
+                onClick={closeMobile}
+                className="mt-3 block w-full rounded-lg border border-line px-5 py-4 text-center text-[15px] font-semibold text-ink transition-colors hover:border-orange hover:text-orange"
+              >
+                {secondary.label}
+              </Link>
+            )}
           </div>
         </nav>
       </div>

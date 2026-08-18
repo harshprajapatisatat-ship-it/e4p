@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import PharmaLandingShell from "@/components/pharma/PharmaLandingShell";
 import PharmaGuideDetail from "@/components/pharma/PharmaGuideDetail";
@@ -37,7 +37,7 @@ export default function ComplianceGuidePage() {
 
   return (
     <>
-      <Header />
+      <SiteHeader />
       <PharmaLandingShell
         eyebrow="Free Guide"
         title="See what a controlled"

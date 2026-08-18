@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import PharmaLeadForm from "@/components/pharma/PharmaLeadForm";
 import { CONTACT } from "@/lib/routes";
@@ -46,7 +46,7 @@ const CHANNELS = [
 export default function ContactPage() {
   return (
     <>
-      <Header />
+      <SiteHeader />
       <main className="relative isolate overflow-hidden bg-white pb-20 pt-[104px] lg:pb-28">
         <div
           aria-hidden
