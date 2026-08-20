@@ -419,9 +419,20 @@ export default function Header({
                   );
                 })}
 
-                {/* Plain links. Only route links can be "current" — the anchors
-                    all live on the home page, so matching on pathname would
-                    light every one of them up at once while on `/`. */}
+              </nav>
+
+              <div className="flex items-center gap-6">
+                {/* Route links, sat with the CTA rather than centred in the bar.
+                    Only route links can be "current" — the anchors all live on
+                    the home page, so matching on pathname would light every one
+                    of them up at once while the visitor is on `/`.
+
+                    `hidden lg:inline-flex` is load-bearing here in a way it was
+                    not inside the <nav>: that element was already
+                    `hidden ... lg:flex`, so these inherited its breakpoint. This
+                    container is visible at every width (it holds the hamburger),
+                    so without it these would double up with the mobile menu's
+                    own copy of the same links. */}
                 {NAV_LINKS.map(({ label, href }) => {
                   const isCurrentPage = !href.includes("#") && pathname === href;
                   return (
@@ -430,7 +441,7 @@ export default function Header({
                       href={href}
                       onMouseEnter={scheduleClose}
                       aria-current={isCurrentPage ? "page" : undefined}
-                      className={`text-[15px] font-medium transition-colors ${
+                      className={`hidden whitespace-nowrap text-[15px] font-medium transition-colors lg:inline-flex ${
                         isCurrentPage ? "text-orange" : "text-ink/90 hover:text-ink"
                       }`}
                     >
@@ -438,9 +449,7 @@ export default function Header({
                     </Link>
                   );
                 })}
-              </nav>
 
-              <div className="flex items-center gap-6">
                 {secondary && (
                   <Link
                     href={secondary.href}
