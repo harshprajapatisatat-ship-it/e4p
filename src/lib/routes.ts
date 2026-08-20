@@ -45,11 +45,15 @@ export const GUIDE_PDF = "/pharma/erpnext-pharma-manufacturing-guide.pdf";
 /** The site has exactly three conversion targets. Every CTA points at one. */
 export const ROUTES = {
   /**
-   * Primary conversion — every "Book a Free Demo" lands on the webinar
-   * registration page. `/contact` still exists and is still reachable from the
-   * header nav; it is simply no longer the demo CTA's destination.
+   * Primary conversion — every "Book a Free Demo" lands here.
+   *
+   * WEBINAR HIDDEN: this pointed at `/erpnext-pharma-webinar` until the webinar
+   * was taken off the site. The route still exists and still works by direct
+   * link (see `webinar` below), but nothing on the site points at it, so the
+   * demo CTA falls back to the contact form. Restoring the webinar is a
+   * one-line change: set this back to `WEBINAR`.
    */
-  demo: "/erpnext-pharma-webinar",
+  demo: "/contact",
   /** Secondary conversion — Get the Free Guide / Get the Compliance Guide. */
   guide: GUIDE,
   /** "View Schedule M Guidelines" — the official CDSCO document, in a new tab. */
@@ -58,6 +62,13 @@ export const ROUTES = {
   guideForm: GUIDE + "#guide-form",
   /** Contact us. */
   contact: "/contact",
+  /**
+   * The webinar registration page. HIDDEN — unlinked from every menu, CTA and
+   * footer, and marked `noindex` on the page itself, so it is reachable only by
+   * direct link. Kept defined here (rather than deleted) so the path stays
+   * named in one place for when it comes back.
+   */
+  webinar: "/erpnext-pharma-webinar",
   /** On-page anchors. The home page has exactly these two sections below the hero. */
   challenges: "#challenges",
   compliance: "#schedule-m",

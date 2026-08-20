@@ -8,7 +8,11 @@ import { getWebinarSessions } from "@/lib/webinarSessions";
 import { ROUTES } from "@/lib/routes";
 
 /**
- * Webinar registration — the destination every "Book a Free Demo" points at.
+ * Webinar registration.
+ *
+ * HIDDEN: nothing on the site links here any more — the "Book a Free Demo" CTA
+ * now goes to /contact — and the page is marked `noindex` below. Everything
+ * still works by direct link; see ROUTES.webinar in routes.ts.
  *
  * The panel on the right is a faithful rebuild of the Manufacturing site's
  * `/erpnext-manufacturing-webinar` form; the column on the left follows the
@@ -19,6 +23,11 @@ export const metadata: Metadata = {
   description:
     "A live session for pharmaceutical manufacturers — see how ERPNext runs batch traceability, documentation, quality control and audit readiness in one connected system. Live demo included.",
   alternates: { canonical: "/erpnext-pharma-webinar" },
+  // HIDDEN: the page still renders and still works by direct link, but it is
+  // unlinked from every menu, CTA and footer, and this keeps search engines
+  // from listing it while it is off the site. Delete this `robots` block to
+  // put it back in the index.
+  robots: { index: false, follow: false },
   openGraph: {
     title: "ERPNext Pharma Manufacturing Webinar",
     description:

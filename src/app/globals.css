@@ -226,6 +226,26 @@ body {
   }
 }
 
+/* ── Step rail ───────────────────────────────────────────────────────────
+   The dashed curve threading the four Schedule M capsules together. Same idea
+   as `.flow-rail` above, but drawn as an SVG path instead of a background
+   image, because the route between two capsules is a CURVE and a
+   repeating-linear-gradient cannot bend. Paired with `vector-effect:
+   non-scaling-stroke` on the path, which keeps both the 2px stroke and the
+   dash lengths in screen units under the `preserveAspectRatio="none"` stretch.
+
+   The offset is -140: a multiple of the 14px dash period (8 + 6), so the loop
+   closes seamlessly instead of jumping on repeat. */
+.step-rail {
+  stroke-dasharray: 8 6;
+  animation: step-rail-flow 3s linear infinite;
+}
+@keyframes step-rail-flow {
+  to {
+    stroke-dashoffset: -140;
+  }
+}
+
 /* ── Convergence fan ─────────────────────────────────────────────────────
    The six inputs (data, process, quality, traceability, documentation,
    compliance) funnelling down into ERPNext. Drawn as one stretched SVG, so
@@ -321,6 +341,7 @@ body {
   .flow-rail,
   .flow-rail-v,
   .flow-seg,
+  .step-rail,
   .converge-line,
   .verify-pulse,
   .record-scan {

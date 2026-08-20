@@ -1,160 +1,192 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, ExternalLink } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useReveal } from "@/lib/useReveal";
-import { ROUTES, CTA_LABELS } from "@/lib/routes";
+import { ROUTES, CTA_LABELS, CONTACT } from "@/lib/routes";
 
 /**
  * Footer for the ERPNext-for-Pharma site.
  *
- * Same design system as the Manufacturing footer: `bg-orange/2` over a top
- * border, a 1180px container, a brand column plus link columns on a 5-column
- * grid, and a divided bottom bar. Columns are pharma-facing; the demo route
- * stays reachable from the Company column rather than as a footer button.
+ * Composition follows the prebuiltui "footer-1" pattern — one centred brand
+ * block (logo, then a single tagline capped at `max-w-xl`), a wrapping row of
+ * links, then a hairline-divided bottom bar — but rendered in the Satat palette
+ * instead of that design's purple gradient. The reference's dark band is
+ * deliberately NOT carried over: `/satat-logo.svg` draws its wordmark in navy
+ * (#003E80), which disappears on a dark navy field, and a white knock-out
+ * variant of the mark does not exist. The vertical gradient survives as a warm
+ * white → surface → orange-wash descent, so the footer still reads as its own
+ * band without breaking the white site or the single-asset logo.
+ *
+ * This replaced a 5-column, 21-link footer. The link row below is that nav
+ * distilled to one destination per section — see the LINKS note.
  */
 
 type FooterLink = { label: string; href: string; external?: boolean };
 
-const COLS: { title: string; links: FooterLink[] }[] = [
-  {
-    title: "Pharma",
-    links: [
-      { label: "Batch Traceability", href: "/#challenges" },
-      { label: "Batch Documentation", href: "/#challenges" },
-      { label: "Quality Control", href: "/#challenges" },
-      { label: "Inventory & Expiry", href: "/#challenges" },
-      { label: "Warehouse Control", href: "/#challenges" },
-      { label: "Equipment Validation", href: "/#challenges" },
-      { label: "Audit Readiness", href: "/#challenges" },
-    ],
-  },
-  {
-    title: "ERPNext Solutions",
-    links: [
-      { label: "ERPNext Implementation", href: "/solutions" },
-      { label: "ERPNext Consulting", href: "/solutions" },
-      { label: "Customization & Development", href: "/solutions" },
-      { label: "Hosting & Infrastructure", href: "/solutions" },
-      { label: "Support & Maintenance", href: "/solutions" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: CTA_LABELS.guide, href: ROUTES.guide },
-      { label: "Schedule M Readiness", href: "/#schedule-m" },
-      { label: CTA_LABELS.scheduleM, href: ROUTES.scheduleM, external: true },
-      { label: "Audit Readiness Checklist", href: "/resources" },
-      { label: "Blogs", href: "/blogs" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About Satat", href: "/company#about" },
-      { label: "Careers", href: "/company#careers" },
-      { label: "Contact", href: "/contact" },
-      { label: CTA_LABELS.demo, href: ROUTES.demo },
-    ],
-  },
+/**
+ * One centred, wrapping row instead of four columns: who we are → what you can
+ * take away → what you should know → how to reach us.
+ *
+ * "Join Webinar" was removed from this row when the webinar was hidden.
+ *
+ * "Schedule M" points at the home page's own Schedule M section — the
+ * "Schedule M · Regulatory Pressure" block rendered by PharmaScheduleM — and
+ * NOT at the external CDSCO PDF. `ROUTES.scheduleM` remains the source of truth
+ * for that document; it is still linked from the Schedule M section itself and
+ * from the guide page, so nothing lost a route here.
+ *
+ * The leading slash matters. This footer also renders on /contact,
+ * /pharma-compliance-guide and the webinar page, so a bare `#schedule-m` — which
+ * is what `ROUTES.compliance` holds, for same-page use — would scroll to nothing
+ * on those routes instead of navigating home. Same form the Header's menu uses.
+ *
+ * "About Satat" leaves this site for the parent company at satat.tech and opens
+ * in a new tab — this site is one product surface, and the visitor should not
+ * lose their place in it to read the company page. It carries no external-link
+ * glyph, by request: the row is short enough that one decorated item pulled the
+ * eye off the rest. It is a plain `<a>`, not a `<Link>` — next/link prefetches
+ * and client-routes, neither of which applies to another origin.
+ */
+const LINKS: FooterLink[] = [
+  { label: "About Satat", href: "https://satat.tech/", external: true },
+  { label: CTA_LABELS.guide, href: ROUTES.guide },
+  { label: "Schedule M", href: "/#schedule-m" },
+  { label: "Contact", href: ROUTES.contact },
 ];
+
+/**
+ * Rendered as plain text, deliberately NOT as links. `/privacy-policy` and
+ * `/terms` do not exist as routes, so linking them sent people to a 404 — the
+ * labels stay for the legal notice they carry, without promising a document the
+ * site cannot yet serve. Turn each back into a `<Link>` once those pages ship.
+ */
+const LEGAL = ["Privacy Policy", "Terms & Conditions"];
 
 /**
  * Social links are intentionally absent: the Manufacturing footer carries none,
  * and the real handles were not supplied. To add them, drop entries in here —
- * the markup slot is at the end of the brand column. Brand glyphs are NOT available in
- * lucide-react v1 (brand icons were removed), so use inline SVG marks.
+ * the markup slot is directly under the tagline. Brand glyphs are NOT available
+ * in lucide-react v1 (brand icons were removed), so use inline SVG marks.
  *
  *   const SOCIAL = [{ label: "LinkedIn", href: "…", mark: <svg …/> }];
  */
 
 export default function Footer() {
-  const ref = useReveal<HTMLElement>({ y: 30, stagger: 0.1 });
+  const ref = useReveal<HTMLElement>({ y: 24, stagger: 0.09 });
 
   return (
-    <footer ref={ref} className="border-t border-line bg-orange/2 text-ink">
-      <div className="mx-auto max-w-[1180px] px-5 py-16 lg:px-8 lg:py-24">
-        {/* ── Columns ───────────────────────────────────── */}
-        <div
+    <footer
+      ref={ref}
+      className="border-t border-line bg-gradient-to-b from-white via-surface to-orange/6 text-ink"
+    >
+      {/* ── Brand block ─────────────────────────────────── */}
+      <div className="mx-auto flex max-w-[1180px] flex-col items-center px-5 py-14 lg:px-8 lg:py-16">
+        <Link data-reveal href="/" aria-label="Satat Technologies — home" className="select-none">
+          <Image
+            src="/satat-logo.svg"
+            alt="Satat Technologies"
+            width={200}
+            height={126}
+            className="h-16 w-auto object-contain"
+          />
+        </Link>
+
+        <p
           data-reveal
-          className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5"
+          className="mt-6 max-w-xl text-center text-[14px] font-normal leading-relaxed text-muted"
         >
-          {/* Brand column */}
-          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-            <Link href="/">
-              <Image
-                src="/satat-logo.svg"
-                alt="Satat Technologies"
-                width={160}
-                height={64}
-                className="h-16 w-auto object-contain"
-                priority
-              />
-            </Link>
-            <p className="mt-4 max-w-[30ch] text-[14px] leading-relaxed text-muted">
-              ERPNext specialists for pharmaceutical manufacturing. Batch traceability,
-              quality, documentation and audit readiness &mdash; built around how your unit
-              actually runs.
-            </p>
-            <p className="mt-4 flex items-start gap-2 text-[13.5px] leading-relaxed text-muted">
-              <MapPin size={14} className="mt-[3px] shrink-0 text-teal" />
-              501 Aarohi Verve, Bopal-Ambli Cross Road, Sardar Patel Ring Rd, Ahmedabad,
-              Gujarat &ndash; 380058 India
-            </p>
+          ERPNext specialists for pharmaceutical manufacturing. Batch traceability, quality,
+          documentation and audit readiness &mdash; built around how your unit actually runs.
+        </p>
 
-            {/* ↑ Social link row goes here when handles are supplied — see the
-                SOCIAL note above this component. */}
-          </div>
-
-          {/* Link columns */}
-          {COLS.map((col) => (
-            <div key={col.title}>
-              <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted/70">
-                {col.title}
-              </h4>
-              <ul className="mt-4 list-none space-y-2.5">
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    {l.external ? (
-                      <a
-                        href={l.href}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="inline-flex items-center gap-1.5 text-[14px] text-ink/70 transition-colors hover:text-ink"
-                      >
-                        {l.label}
-                        <ExternalLink size={12} strokeWidth={2.3} className="shrink-0" />
-                      </a>
-                    ) : (
-                      <Link
-                        href={l.href}
-                        className="text-[14px] text-ink/70 transition-colors hover:text-ink"
-                      >
-                        {l.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* ── Link row ──────────────────────────────────────
+            Inline flow rather than flex, so the row rewraps to however many
+            lines the viewport allows. The wrap is steered by controlling where
+            break opportunities exist at all: each label sits in a
+            `whitespace-nowrap` span so a two-word label like "About Satat"
+            can never split, the `·` follows with no whitespace before it so it
+            can never be stranded at the start of a line, and the explicit
+            `{" "}` after it is the ONLY place a line may break. Remove that
+            space and the row becomes one unbreakable line that overflows the
+            viewport — there is no other whitespace in this markup. */}
+        <nav
+          data-reveal
+          aria-label="Footer"
+          className="mt-8 max-w-4xl text-center text-[14px] leading-loose"
+        >
+          {LINKS.map((l, i) => (
+            <Fragment key={l.label}>
+              <span className="whitespace-nowrap">
+                {l.external ? (
+                  <a
+                    href={l.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="font-medium text-ink/70 transition-colors hover:text-ink"
+                  >
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={l.href}
+                    className="font-medium text-ink/70 transition-colors hover:text-ink"
+                  >
+                    {l.label}
+                  </Link>
+                )}
+                {i < LINKS.length - 1 && (
+                  <span aria-hidden="true" className="ml-3 mr-2.5 text-ink/25">
+                    &middot;
+                  </span>
+                )}
+              </span>
+              {i < LINKS.length - 1 && " "}
+            </Fragment>
           ))}
-        </div>
+        </nav>
 
-        {/* ── Bottom bar ────────────────────────────────── */}
-        <div
+        {/* The pin flows inline with the first line of the address rather than
+            sitting in a flex gutter, so the whole block stays optically centred
+            once the address wraps to two lines. */}
+        <p
           data-reveal
-          className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-line pt-8 text-[13px] text-muted sm:flex-row"
+          className="mt-8 max-w-md text-center text-[13px] leading-relaxed text-muted"
         >
-          <span>© {new Date().getFullYear()} Satat Technologies. All rights reserved.</span>
-          <span className="flex gap-6">
-            <Link href="/privacy-policy" className="transition-colors hover:text-ink">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-ink">
-              Terms &amp; Conditions
-            </Link>
+          <MapPin
+            size={14}
+            strokeWidth={2.2}
+            className="mr-1.5 inline-block shrink-0 align-[-2px] text-teal"
+          />
+          {CONTACT.address}
+        </p>
+      </div>
+
+      {/* ── Bottom bar ──────────────────────────────────── */}
+      <div className="border-t border-line">
+        <div className="mx-auto max-w-[1180px] px-5 py-6 text-center text-[13px] font-normal text-muted lg:px-8">
+          <span>
+            &copy; {new Date().getFullYear()} Satat Technologies. All rights reserved.
+          </span>
+          <span aria-hidden="true" className="mx-3 hidden text-ink/20 sm:inline">
+            &middot;
+          </span>
+          <span className="mt-2 block sm:mt-0 sm:inline">
+            {LEGAL.map((label, i) => (
+              <Fragment key={label}>
+                <span className="whitespace-nowrap">
+                  {label}
+                  {i < LEGAL.length - 1 && (
+                    <span aria-hidden="true" className="ml-3 mr-2.5 text-ink/25">
+                      &middot;
+                    </span>
+                  )}
+                </span>
+                {i < LEGAL.length - 1 && " "}
+              </Fragment>
+            ))}
           </span>
         </div>
       </div>
