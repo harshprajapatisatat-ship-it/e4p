@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { gsap } from "@/lib/gsap";
 import { ROUTES, CTA_LABELS } from "@/lib/routes";
+import { setScrollLocked } from "@/lib/lenis";
 import Logo from "./Logo";
 
 /**
@@ -168,7 +169,6 @@ const NAV_WITH_MENU: string[] = [];
  * resolve from /contact or /blogs instead of doing nothing there.
  */
 const NAV_LINKS: { label: string; href: string }[] = [
-  { label: "Pharma", href: "/#challenges" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -178,17 +178,33 @@ const NAV_LINKS: { label: string; href: string }[] = [
  * Demo" on the site with a hardcoded destination, so it silently kept pointing
  * at the old one when the CTA moved.
  */
-const CTA = { label: CTA_LABELS.joinWebinar, href: ROUTES.demo };
+const CTA = { label: CTA_LABELS.demo, href: ROUTES.demo };
 
 /**
- * Secondary conversion, sat beside the CTA. Rendered as a plain link rather
- * than a second button so the bar keeps exactly one filled control and the
- * hierarchy stays readable — the webinar is the primary conversion, the guide
- * is the softer alternative for anyone not ready to book a seat.
+ * The guide.
  *
- * The two swap roles when nothing is scheduled: see `hasSessions` below.
+ * With SHOW_DEMO_CTA off (the current state) this IS the bar's orange button —
+ * it moves into the primary slot and no plain link is rendered beside it, so
+ * the bar keeps exactly one filled control either way.
+ *
+ * Turn SHOW_DEMO_CTA back on and it returns to being the softer alternative: a
+ * plain link sat next to the "Book a Free Demo" button.
  */
 const GUIDE_CTA = { label: CTA_LABELS.guide, href: ROUTES.guide };
+
+/**
+ * HIDDEN: the "Book a Free Demo" / "Talk to Us" CTA is off the bar by request,
+ * and "Get the Free Guide" takes the button slot in its place.
+ *
+ * Flip this to `true` to restore the two-action bar — the demo CTA returns as
+ * the orange button and the guide drops back to the plain link beside it. That
+ * is the whole switch; both render blocks below are untouched.
+ *
+ * Typed as `boolean` rather than left to infer `false`, so the branch does not
+ * read as statically dead to TypeScript.
+ */
+const SHOW_DEMO_CTA: boolean = false;
+
 
 export default function Header({
   hasSessions = true,
@@ -205,14 +221,24 @@ export default function Header({
   const pathname = usePathname();
 
   /**
-   * With no session on offer, "Join Webinar" would send people to a page where
-   * registration is disabled, so the guide takes the primary slot instead and
-   * the webinar link is simply not rendered. Nothing is removed: add a slot in
-   * ERPNext and the bar returns to its two-action layout on the next
-   * revalidation, with no deploy.
+   * WEBINAR HIDDEN: these no longer branch on `hasSessions`.
+   *
+   * The branch existed because "Join Webinar" pointed at a page where
+   * registration could be disabled — with nothing scheduled, sending people
+   * there was a dead end, so the guide took the primary slot. The CTA now goes
+   * to /contact, which is always available, so both slots are unconditional.
+   *
+   * `hasSessions` is deliberately still plumbed through from SiteHeader rather
+   * than ripped out, so restoring the webinar is just putting these two lines
+   * back:
+   *
+   *   const primary = hasSessions ? CTA : GUIDE_CTA;
+   *   const secondary = hasSessions ? GUIDE_CTA : null;
    */
-  const primary = hasSessions ? CTA : GUIDE_CTA;
-  const secondary = hasSessions ? GUIDE_CTA : null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _hasSessions = hasSessions;
+  const primary = SHOW_DEMO_CTA ? CTA : GUIDE_CTA;
+  const secondary = SHOW_DEMO_CTA ? GUIDE_CTA : null;
   const [active, setActive] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -231,12 +257,18 @@ export default function Header({
     activeRef.current = active;
   }, [active]);
 
-  // Lock body scroll while the mobile menu is open
+  // Lock page scroll while the mobile menu is open.
+  //
+  // `document.body.style.overflow = "hidden"` on its own does NOT hold this.
+  // Lenis reads wheel and touch events itself and moves the window
+  // programmatically, so it goes straight past an overflow that only stops the
+  // browser's own scrolling — the page slides by underneath the open menu, and
+  // closing it leaves you somewhere you never chose to be. `setScrollLocked`
+  // stops Lenis too, and still sets the overflow for the reduced-motion path
+  // where Lenis is never constructed.
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    setScrollLocked(mobileOpen);
+    return () => setScrollLocked(false);
   }, [mobileOpen]);
 
   const open = useCallback((label: string) => {
@@ -646,7 +678,7 @@ export default function Header({
               <Link
                 href={secondary.href}
                 onClick={closeMobile}
-                className="mt-3 block w-full rounded-lg border border-line px-5 py-4 text-center text-[15px] font-semibold text-ink transition-colors hover:border-orange hover:text-orange"
+                className={`${SHOW_DEMO_CTA ? "mt-3 " : ""}block w-full rounded-lg border border-line px-5 py-4 text-center text-[15px] font-semibold text-ink transition-colors hover:border-orange hover:text-orange`}
               >
                 {secondary.label}
               </Link>

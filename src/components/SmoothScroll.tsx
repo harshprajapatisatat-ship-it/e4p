@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { registerLenis } from "@/lib/lenis";
 
 // useLayoutEffect warns during SSR ("does nothing on the server"); fall back
 // to useEffect there. Matters here specifically because layout effects for
@@ -47,8 +48,33 @@ export default function SmoothScroll() {
       anchors: { offset: -96 },
     });
     lenisRef.current = lenis;
+    registerLenis(lenis);
 
     lenis.on("scroll", ScrollTrigger.update);
+
+    // ── Keeping the two measurement caches in agreement ──────────────────
+    // ScrollTrigger and Lenis each cache their own idea of how tall the
+    // document is, and neither tells the other when it re-measures.
+    //
+    // `ScrollTrigger.refresh()` recomputes every trigger's start/end against
+    // the current page height, but Lenis carries on clamping scroll to the
+    // limit it measured at construction. Once those two disagree — after any
+    // late layout change — the page stops short of its real bottom and no
+    // amount of scrolling gets past it. It looks exactly like a stuck page,
+    // and only a reload clears it, because a reload is the one thing that
+    // makes Lenis measure again. Re-measuring it on every refresh is the fix.
+    const resyncLenis = () => lenis.resize();
+    ScrollTrigger.addEventListener("refresh", resyncLenis);
+
+    // The other half of the same problem: the things that change the page
+    // height arrive AFTER both caches were taken. The hero carries a video and
+    // a full-bleed still, and Onest swaps in once the webfont lands — each of
+    // those reflows the page well past first paint. One refresh after they have
+    // actually settled is what stops the page booting straight into the stale
+    // state described above.
+    const settle = () => ScrollTrigger.refresh();
+    window.addEventListener("load", settle);
+    if (document.fonts) document.fonts.ready.then(settle);
 
     // Mobile browsers fire a resize every time the URL bar hides or shows.
     // Without this, each one triggers a full ScrollTrigger refresh mid-scroll,
@@ -62,9 +88,12 @@ export default function SmoothScroll() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      ScrollTrigger.removeEventListener("refresh", resyncLenis);
+      window.removeEventListener("load", settle);
       gsap.ticker.remove(tick);
       lenis.destroy();
       lenisRef.current = null;
+      registerLenis(null);
     };
   }, []);
 

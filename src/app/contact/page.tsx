@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
+import { MapPin, MessageSquare, Phone } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import PharmaLeadForm from "@/components/pharma/PharmaLeadForm";
@@ -12,7 +12,7 @@ import { CONTACT } from "@/lib/routes";
  * "Let's Make Your Pharma Unit Audit-Ready". The demo/webinar CTA no longer
  * lands here — it goes to /erpnext-pharma-webinar.
  *
- * Every phone number, address and email on this page comes from `CONTACT` in
+ * Every phone number and address on this page comes from `CONTACT` in
  * routes.ts, which holds Satat's real details. Nothing here is placeholder
  * copy: a wrong number on a contact page is worse than no number at all.
  */
@@ -37,10 +37,18 @@ const POINTS = [
   "Support that continues after go-live, not just through implementation",
 ];
 
-/** The two direct channels, alongside the form. */
+/**
+ * The direct channel alongside the form.
+ *
+ * Phone only, by request — the `sales@satat.tech` row was removed from this
+ * page, so the form is the written route in and the number is the spoken one.
+ * `CONTACT.email` / `.mailto` are still in routes.ts and still correct; nothing
+ * on this site reads them any more. Restoring the row is one entry:
+ *
+ *   { icon: Mail, value: CONTACT.email, note: CONTACT.emailNote, href: CONTACT.mailto }
+ */
 const CHANNELS = [
   { icon: Phone, value: CONTACT.phone, note: CONTACT.phoneNote, href: CONTACT.tel },
-  { icon: Mail, value: CONTACT.email, note: CONTACT.emailNote, href: CONTACT.mailto },
 ];
 
 export default function ContactPage() {
